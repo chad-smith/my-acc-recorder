@@ -13,6 +13,9 @@ namespace Service.Responses {
     public LapType Type { get; internal set; }
 
     public override string ToString() {
+      if ( !LaptimeMS.HasValue ) {
+        return "No valid lap";
+      }
       return $"{LaptimeMS,5}|{string.Join( "|", Splits )}";
     }
 

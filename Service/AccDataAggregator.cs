@@ -1,26 +1,42 @@
 ﻿using System;
-using Service.Requests;
 
 namespace Service {
   internal class AccDataAggregator {
-    private readonly string _password;
-    private readonly TimeSpan? _updateInterval;
     private readonly AccDataConnection _accDataConnection;
+    private bool _retrying;
 
     public AccDataAggregator( string password = "asd", int port = 9000, TimeSpan? updateInterval = null, string host = "localhost" ) {
-      _password = password;
-      _updateInterval = updateInterval;
-      _accDataConnection = new AccDataConnection( host, port );
+      _accDataConnection = new AccDataConnection( host, port, password, updateInterval );
+      _accDataConnection.ConnectionLost += (_, args) => Reconnect();
+      _accDataConnection.ConnectionEstablished += ( _, __ ) => Connected();
     }
 
     public AccDataConnection Start() {
-      Logger.Log( "Starting connection" );
       _accDataConnection.Start();
-      Logger.Log( "Connection started" );
-
-      _accDataConnection.Send( new RegistrationRequest( _password, _updateInterval ) );
 
       return _accDataConnection;
     }
+
+    private void Reconnect() {
+      if ( !_retrying ) {
+        Logger.Log( "Lost connection. Reconnecting..." );
+      }
+      else {
+        _retrying = true;
+        Logger.Log( "Connection attempt failed, retrying...", Severity.Verbose );
+      }
+    }
+
+    private void Connected() {
+      if ( !_retrying ) {
+        Logger.Log( "Connected" );
+      }
+      else {
+        Logger.Log( "Connected", Severity.Verbose );
+      }
+
+      _retrying = false;
+    }
+
   }
 }

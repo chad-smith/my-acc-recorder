@@ -4,27 +4,6 @@ using System.Text;
 
 namespace Service.Responses {
   internal class RealTimeUpdateResponse: AccApiResponse {
-    public int EventIndex { get; internal set; }
-    public int SessionIndex { get; internal set; }
-    public SessionPhase Phase { get; internal set; }
-    public TimeSpan SessionTime { get; internal set; }
-    public TimeSpan TimeOfDay { get; internal set; }
-    public float RainLevel { get; internal set; }
-    public float Clouds { get; internal set; }
-    public float Wetness { get; internal set; }
-    public LapInfo BestSessionLap { get; internal set; }
-    public int FocusedCarIndex { get; internal set; }
-    public string ActiveCameraSet { get; internal set; }
-    public string ActiveCamera { get; internal set; }
-    public bool IsReplayPlaying { get; internal set; }
-    public float ReplaySessionTime { get; internal set; }
-    public float ReplayRemainingTime { get; internal set; }
-    public TimeSpan SessionEndTime { get; internal set; }
-    public RaceSessionType SessionType { get; internal set; }
-    public byte AmbientTemp { get; internal set; }
-    public byte TrackTemp { get; internal set; }
-    public string CurrentHudPage { get; internal set; }
-
     public RealTimeUpdateResponse( BinaryReader reader ) {
       EventIndex = reader.ReadUInt16();
       SessionIndex = reader.ReadUInt16();
@@ -56,8 +35,29 @@ namespace Service.Responses {
       BestSessionLap = LapInfo.FromReader( reader );
     }
 
+    public int EventIndex { get; }
+    public int SessionIndex { get; }
+    public SessionPhase Phase { get; }
+    public TimeSpan SessionTime { get; }
+    public TimeSpan TimeOfDay { get; }
+    public float RainLevel { get; }
+    public float Clouds { get; }
+    public float Wetness { get; }
+    public LapInfo BestSessionLap { get; }
+    public int FocusedCarIndex { get; }
+    public string ActiveCameraSet { get; }
+    public string ActiveCamera { get; }
+    public bool IsReplayPlaying { get; }
+    public float ReplaySessionTime { get; }
+    public float ReplayRemainingTime { get; }
+    public TimeSpan SessionEndTime { get; }
+    public RaceSessionType SessionType { get; }
+    public byte AmbientTemp { get; }
+    public byte TrackTemp { get; }
+    public string CurrentHudPage { get; }
+    
     public override string ToString() {
-      return $"RealtimeUpdate: {SessionType} {Phase} {SessionEndTime}";
+      return $"RealtimeUpdate: {SessionType} {Phase} {SessionEndTime} {TimeOfDay}";
     }
     
     private static string ReadString( BinaryReader reader ) {

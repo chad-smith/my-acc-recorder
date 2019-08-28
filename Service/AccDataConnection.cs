@@ -6,47 +6,71 @@ using System.Threading.Tasks;
 using Service.Requests;
 using Service.Responses;
 
+using Timer = System.Timers.Timer;
+
 namespace Service {
   internal class AccDataConnection {
+    private readonly TimeSpan _defaultUpdateInterval = TimeSpan.FromSeconds( 5 );
     private readonly string _host;
     private readonly int _port;
+    private readonly string _password;
+    private readonly TimeSpan? _updateInterval;
     private readonly UdpClient _client;
     private readonly CancellationToken _cancellationToken;
     private readonly CancellationTokenSource _cancellationTokenSource;
+    private readonly Timer _noMessagesReceivedTimer;
+    private bool _registered;
+    private bool _sendingPing;
 
-    public AccDataConnection( string host, int port ) {
+    public AccDataConnection( string host, int port, string password, TimeSpan? updateInterval ) {
       _host = host;
       _port = port;
+      _password = password;
+      _updateInterval = updateInterval.GetValueOrDefault( _defaultUpdateInterval );
       _client = new UdpClient();
       _cancellationTokenSource = new CancellationTokenSource();
       _cancellationToken = _cancellationTokenSource.Token;
+
+      _noMessagesReceivedTimer = new Timer();
+      _noMessagesReceivedTimer.Elapsed += ( _, __ ) => {
+        if ( _registered && !_sendingPing ) {
+          SendPing();
+          _sendingPing = true;
+          return;
+        }
+
+        if ( _registered ) {
+          ConnectionLost?.Invoke( null, new ConnectionLostEventArgs() );
+        }
+
+        _registered = false;
+
+        SendRegistrationRequest();
+      };
     }
 
     public int ConnectionId { get; private set; }
     public event EventHandler<AccApiResponse> MessageReceived;
+    public event EventHandler ConnectionEstablished;
+    public event EventHandler<ConnectionLostEventArgs> ConnectionLost;
 
     public void Start() {
       _client.Connect( _host, _port );
 
-      /*Task.Run( 
+      Task.Run( 
         async () => {
-          while ( true ) {
-            var response = await _client.ReceiveAsync();
-            var s = Encoding.UTF8.GetString( response.Buffer );
-            Logger.Log( s );
-          }
-        }
-      );*/
-
-      Task.Run( async () => {
           try {
+            _noMessagesReceivedTimer.Start();
             await ListenForMessages();
           }
           catch ( Exception ex ) {
-            Logger.Log( ex.Message );
+            Logger.Log( ex.Message, Severity.Error );
           }
         }
       );
+
+      Logger.Log( "Connecting..." );
+      SendRegistrationRequest();
     }
 
     private async Task ListenForMessages() {
@@ -57,10 +81,17 @@ namespace Service {
           _cancellationToken
         );
 
+        _sendingPing = false;
+        _noMessagesReceivedTimer.Stop();
+        _noMessagesReceivedTimer.Start();
+
         var accMessage = AccApiResponse.Parse( response.Buffer );
 
         if ( accMessage is RegistrationResponse registration ) {
           ConnectionId = registration.ConnectionId;
+          ConnectionEstablished?.Invoke( this, null );
+
+          _registered = true;
         }
 
         Logger.Log( $"Received {accMessage}", Severity.Verbose );
@@ -78,7 +109,16 @@ namespace Service {
         r.ConnectionId = ConnectionId;
       }
 
-      Logger.Log( $"Sending {request.GetType().Name}" );
+      if ( request is RegistrationRequest registrationRequest ) {
+        _noMessagesReceivedTimer.Interval = registrationRequest.UpdateInterval
+          .GetValueOrDefault(_defaultUpdateInterval)
+          .TotalMilliseconds
+          + 250;
+      }
+      else {
+        Logger.Log( $"Sending {request.GetType().Name}" );
+      }
+
       byte[] payload;
 
       using ( var stream = new MemoryStream() ) {
@@ -94,6 +134,13 @@ namespace Service {
 
       _client.SendAsync( payload, payload.Length );
     }
-  }
 
+    private void SendRegistrationRequest() {
+      Send( new RegistrationRequest( _password, _updateInterval ) );
+    }
+
+    private void SendPing() {
+      Send( new TrackDataRequest() );
+    }
+  }
 }

@@ -30,39 +30,22 @@ namespace Service.Responses {
     }
 
     public LapInfo CurrentLap { get; }
-
     public LapInfo LastLap { get; set; }
-
     public LapInfo BestSessionLap { get; set; }
-
     public int Delta { get; set; }
-
     public ushort Laps { get; set; }
-
     public float SplinePosition { get; set; }
-
     public ushort TrackPosition { get; set; }
-
     public ushort CupPosition { get; set; }
-
     public ushort Position { get; set; }
-
     public ushort Kmh { get; set; }
-
     public float Yaw { get; set; }
-
     public float WorldPosY { get; set; }
-
     public float WorldPosX { get; set; }
-
     public int Gear { get; set; }
-
     public byte DriverCount { get; set; }
-
     public ushort DriverIndex { get; set; }
-
     public ushort CarIndex { get; set; }
-
     public CarLocation CarLocation { get; set; }
   }
 }
