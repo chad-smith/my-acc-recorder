@@ -17,7 +17,7 @@ namespace Service.Responses {
     public List<ushort> CarIndices { get; }
 
     public override string ToString() {
-      return $"{CarCount} {string.Join( ", ", CarIndices )}";
+      return $"Entry List: {CarCount} Cars: {string.Join( ", ", CarIndices )}";
     }
   }
 }

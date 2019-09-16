@@ -7,22 +7,12 @@ namespace Service.Responses {
       Drivers = new List<DriverInfo>();
 
       CarId = reader.ReadUInt16();
-
-/*
-      var carInfo = _entryListCars.SingleOrDefault( x => x.CarIndex == carId );
-      if ( carInfo == null ) {
-        System.Diagnostics.Debug.WriteLine( $"Entry list update for unknown carIndex {carId}" );
-        break;
-      }
-*/
-
       CarModel = (CarModel)reader.ReadByte();
       TeamName = reader.ReadAccString();
       RaceNumber = reader.ReadInt32();
       CupCategory = (CupCategory)reader.ReadByte();
       CurrentDriverIndex = reader.ReadByte();
 
-      // Now the drivers on this car:
       var numberOfDriversForCar = reader.ReadByte();
       for ( var driverIndex = 0; driverIndex < numberOfDriversForCar; driverIndex++ ) {
         var driverInfo = new DriverInfo(
@@ -37,7 +27,7 @@ namespace Service.Responses {
     }
 
     public override string ToString() {
-      return $"{CarId} {CarModel} {RaceNumber} {TeamName}";
+      return $"Entry List Car: Id: {CarId} Model: {CarModel} Number: {RaceNumber} Team: {TeamName}";
     }
 
     public byte CurrentDriverIndex { get; }

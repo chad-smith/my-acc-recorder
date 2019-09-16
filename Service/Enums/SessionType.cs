@@ -1,5 +1,5 @@
 ﻿namespace Service {
-  public enum RaceSessionType {
+  public enum SessionType {
     Practice = 0,
     Qualifying = 4,
     Superpole = 9,

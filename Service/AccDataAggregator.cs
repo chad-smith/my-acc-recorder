@@ -1,4 +1,5 @@
 ﻿using System;
+using Service.Requests;
 
 namespace Service {
   internal class AccDataAggregator {

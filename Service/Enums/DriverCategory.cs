@@ -1,4 +1,4 @@
-﻿namespace Service.Responses {
+﻿namespace Service {
   internal enum DriverCategory {
     Bronze,
     Silver,

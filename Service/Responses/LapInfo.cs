@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Service.Responses {
   public class LapInfo {
-    public int? LaptimeMS { get; internal set; }
+    public int? LapTimeMilliseconds { get; internal set; }
     public List<int?> Splits { get; } = new List<int?>();
     public ushort CarIndex { get; internal set; }
     public ushort DriverIndex { get; internal set; }
@@ -13,21 +13,21 @@ namespace Service.Responses {
     public LapType Type { get; internal set; }
 
     public override string ToString() {
-      if ( !LaptimeMS.HasValue ) {
+      if ( !LapTimeMilliseconds.HasValue ) {
         return "No valid lap";
       }
-      return $"{LaptimeMS,5}|{string.Join( "|", Splits )}";
+      return $"{LapTimeMilliseconds,5}|{string.Join( "|", Splits )}";
     }
 
     public static LapInfo FromReader( BinaryReader reader ) {
       var lap = new LapInfo();
-      lap.LaptimeMS = reader.ReadInt32();
+      lap.LapTimeMilliseconds = reader.ReadInt32();
 
       lap.CarIndex = reader.ReadUInt16();
       lap.DriverIndex = reader.ReadUInt16();
 
       var splitCount = reader.ReadByte();
-      for ( int i = 0; i < splitCount; i++ )
+      for ( var i = 0; i < splitCount; i++ )
         lap.Splits.Add( reader.ReadInt32() );
 
       lap.IsInvalid = reader.ReadByte() > 0;
@@ -50,12 +50,12 @@ namespace Service.Responses {
       }
 
       // "null" entries are Int32.Max, in the C# world we can replace this to null
-      for ( int i = 0; i < lap.Splits.Count; i++ )
-        if ( lap.Splits[i] == Int32.MaxValue )
+      for ( var i = 0; i < lap.Splits.Count; i++ )
+        if ( lap.Splits[i] == int.MaxValue )
           lap.Splits[i] = null;
 
-      if ( lap.LaptimeMS == Int32.MaxValue )
-        lap.LaptimeMS = null;
+      if ( lap.LapTimeMilliseconds == int.MaxValue )
+        lap.LapTimeMilliseconds = null;
 
       return lap;
     }

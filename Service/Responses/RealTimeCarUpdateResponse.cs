@@ -26,7 +26,7 @@ namespace Service.Responses {
     }
 
     public override string ToString() {
-      return $"RealtimeCarUpdate: {CarIndex} {CarLocation} {Position} {TimeSpan.FromMilliseconds(Convert.ToInt32(CurrentLap.LaptimeMS))}";
+      return $"RealtimeCarUpdate: {CarIndex} {CarLocation} {Position} {TimeSpan.FromMilliseconds(Convert.ToInt32(CurrentLap.LapTimeMilliseconds))}";
     }
 
     public LapInfo CurrentLap { get; }

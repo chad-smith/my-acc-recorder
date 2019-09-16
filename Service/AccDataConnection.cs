@@ -44,11 +44,13 @@ namespace Service {
         }
 
         _registered = false;
+        Connected = false;
 
         SendRegistrationRequest();
       };
     }
 
+    public bool Connected { get; private set; }
     public int ConnectionId { get; private set; }
     public event EventHandler<AccApiResponse> MessageReceived;
     public event EventHandler ConnectionEstablished;
@@ -81,6 +83,7 @@ namespace Service {
           _cancellationToken
         );
 
+        Connected = true;
         _sendingPing = false;
         _noMessagesReceivedTimer.Stop();
         _noMessagesReceivedTimer.Start();
@@ -94,7 +97,10 @@ namespace Service {
           _registered = true;
         }
 
-        Logger.Log( $"Received {accMessage}", Severity.Verbose );
+        // Trim out realtime responses as this generates too much noise
+        if ( !( accMessage is RealTimeUpdateResponse || accMessage is RealTimeCarUpdateResponse || accMessage is EntryListCarResponse || accMessage is EntryListResponse ) ) {
+          Logger.Log( $"Received {accMessage}", Severity.Verbose );
+        }
         
         MessageReceived?.Invoke( this, accMessage );
       }
@@ -115,8 +121,8 @@ namespace Service {
           .TotalMilliseconds
           + 250;
       }
-      else {
-        Logger.Log( $"Sending {request.GetType().Name}" );
+      else if ( !(request is EntryListRequest el && el.IsPing ) ) {
+        Logger.Log( $"Sending {request.GetType().Name}", Severity.Verbose );
       }
 
       byte[] payload;
@@ -132,7 +138,12 @@ namespace Service {
         payload = stream.ToArray();
       }
 
-      _client.SendAsync( payload, payload.Length );
+      try {
+        _client.SendAsync( payload, payload.Length );
+      }
+      catch ( Exception ex ) {
+        Logger.Log( ex.Message, Severity.Error );
+      }
     }
 
     private void SendRegistrationRequest() {

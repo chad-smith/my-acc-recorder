@@ -6,7 +6,7 @@ namespace Service.Requests {
   internal class RegistrationRequest : AccApiRequest {
     private readonly string _password;
     public TimeSpan? UpdateInterval { get; }
-    private readonly TimeSpan _defaultUpdateInterval = TimeSpan.FromMilliseconds( 250 );
+    private readonly TimeSpan _defaultUpdateInterval = TimeSpan.FromSeconds( 1 );
 
     public RegistrationRequest( string password, TimeSpan? updateInterval ) {
       _password = password;

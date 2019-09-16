@@ -7,7 +7,7 @@ namespace Service.Responses {
     public RealTimeUpdateResponse( BinaryReader reader ) {
       EventIndex = reader.ReadUInt16();
       SessionIndex = reader.ReadUInt16();
-      SessionType = (RaceSessionType)reader.ReadByte();
+      SessionType = (SessionType)reader.ReadByte();
       Phase = (SessionPhase)reader.ReadByte();
       var sessionTime = reader.ReadSingle();
       SessionTime = TimeSpan.FromMilliseconds( sessionTime );
@@ -51,7 +51,7 @@ namespace Service.Responses {
     public float ReplaySessionTime { get; }
     public float ReplayRemainingTime { get; }
     public TimeSpan SessionEndTime { get; }
-    public RaceSessionType SessionType { get; }
+    public SessionType SessionType { get; }
     public byte AmbientTemp { get; }
     public byte TrackTemp { get; }
     public string CurrentHudPage { get; }

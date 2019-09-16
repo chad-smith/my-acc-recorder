@@ -39,7 +39,7 @@ namespace Service.Responses {
     public string TrackName { get; }
 
     public override string ToString() {
-      return $"TrackData: {TrackId} {TrackName} {TrackMeters}m";
+      return $"Track Data: {TrackName} - {TrackMeters}m";
     }
   }
 }

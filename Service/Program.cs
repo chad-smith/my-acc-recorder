@@ -1,127 +1,92 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using Newtonsoft.Json;
+using Service.Models;
 using Service.Requests;
 using Service.Responses;
 
 namespace Service {
   class Program {
-    private static SessionPhase? _currentPhase;
-    private static RaceSessionType? _currentSessionType;
     private const LogLevel DefaultLogLevel = LogLevel.Info;
-    private static bool _sessionInProgress;
-    private static Guid _sessionId;
-    private static Guid _weekendId;
-    private static string _track;
-    private static Dictionary<int, CarDetails> _cars = new Dictionary<int, CarDetails>();
-    private static int _playerCarIndex;
+    private static AccDataAggregator _accClient;
+    private static SessionManager _sessionManager;
+    private static AccDataConnection _connection;
 
     static void Main() {
       Logger.CurrentLevel = DefaultLogLevel;
 
-      var accClient = new AccDataAggregator( host: "office-pc" );
+      _accClient = new AccDataAggregator( host: "office-pc" );
 
-      var connection = accClient.Start();
+      _connection = _accClient.Start();
+      _sessionManager = new SessionManager();
 
-      connection.MessageReceived += ( sender, message ) => {
-        if ( message is RealTimeUpdateResponse response ) {
-          if ( response.IsReplayPlaying ) {
-            return;
-          }
+      _sessionManager.TimedPhaseStarted += ( sender, args ) => {
+      };
 
-          // If there is a session in progress and we go to a pre-session phase,
-          // the previous session must have been abandoned
-          if ( _sessionInProgress && response.Phase < SessionPhase.Session ) {
-            Logger.Log( $"{_currentSessionType} abandoned" );
-            _sessionInProgress = false;
-          }
+      _sessionManager.SessionStarted += ( sender, args ) => {
+        _connection.Send( new TrackDataRequest() );
+      };
 
-          // We don't really know what to do with this, so we do nothing 
-          if ( response.Phase == SessionPhase.None ) {
-            return;
-          }
-
-          // Between Session and PostSession the race is in progress
-          if ( response.Phase >= SessionPhase.Session && response.Phase < SessionPhase.PostSession ) {
-            if ( !_sessionInProgress ) {
-              Logger.Log( $"{response.SessionType} started" );
-            }
-
-            _sessionInProgress = true;
-            _sessionId = Guid.NewGuid();
-          }
-          else {
-            if ( _sessionInProgress ) {
-              Logger.Log( $"{response.SessionType} finished" );
-
-              //DEBUG!
-              Logger.Log( $"Sending to server: \r\nWeekend: {_weekendId}\r\nSession: {_sessionId}" );
-              var httpClient = new HttpClient();
-              var content = JsonConvert.SerializeObject( new {
-                  Player = _cars[_playerCarIndex].DriverName,
-                  Status = "Finished",
-                  StartTime = DateTime.Now,
-                  DriverCount = _cars.Count,
-                  Track = _track
-                }
-              );
-              httpClient.PostAsync( "https://my-acc.net/api/sessions", new StringContent( content ) );
-            }
-
-            _sessionInProgress = false;
-          }
-
-          if ( _currentSessionType != response.SessionType ) {
-            Logger.Log( $"(Session) {_currentSessionType} -> {response.SessionType}", Severity.Verbose );
-
-            if ( response.SessionType < _currentSessionType ) {
-              _weekendId = Guid.NewGuid();
-              Logger.Log( "Starting new weekend" );
-            }
-
-            _currentSessionType = response.SessionType;
-          }
-
-          if ( _currentPhase != response.Phase ) {
-            Logger.Log( $"(Phase) {_currentPhase} -> {response.Phase}", Severity.Verbose );
-            _currentPhase = response.Phase;
-          }
+      _connection.MessageReceived += ( sender, message ) => {
+        if ( message is RealTimeUpdateResponse realtimeUpdate ) {
+          _sessionManager.UpdateSessionBasics( realtimeUpdate.SessionType, realtimeUpdate.Phase );
+          _sessionManager.UpdateSessionDetails( realtimeUpdate );
         }
 
-        if ( message is RealTimeUpdateResponse r ) {
-          _playerCarIndex = r.FocusedCarIndex;
-        }
-
-        if ( message is TrackDataResponse track ) {
-          _track = track.TrackName;
-        }
-
-        if ( message is EntryListCarResponse carResponse ) {
-          _cars[carResponse.CarId] = new CarDetails(
-            carResponse.CarModel,
-            carResponse.Drivers.First().LastName
+        if ( message is RealTimeCarUpdateResponse realtimeCarUpdate ) {
+          _sessionManager.UpdateCarDetails(
+            realtimeCarUpdate.CarIndex,
+            realtimeCarUpdate.Position,
+            realtimeCarUpdate.CarLocation,
+            realtimeCarUpdate.Laps,
+            realtimeCarUpdate.CurrentLap,
+            realtimeCarUpdate.LastLap,
+            realtimeCarUpdate.Delta
           );
         }
 
-        if ( message is TrackDataResponse || message is EntryListCarResponse || message is EntryListResponse ) {
-          Logger.Log( message.ToString() );
+        if ( message is TrackDataResponse trackResponse ) {
+          _sessionManager.SetTrack( trackResponse.TrackName );
+          // Invert this so the SessionManager indicates it is ready for the entry list
+          _connection.Send( new EntryListRequest() );
+        }
+
+        if ( message is EntryListCarResponse carResponse ) {
+          _sessionManager.SetCar(
+            carResponse.CarId,
+            carResponse.CarModel,
+            (
+              carResponse.Drivers.First().FirstName,
+              carResponse.Drivers.First().LastName
+            )
+          );
+        }
+
+        if ( message is BroadcastingEventResponse broadcastingEvent ) {
+          if ( broadcastingEvent.MessageType == BroadcastingEventType.LapCompleted ) {
+            //TODO: Ask session manager to update car
+            //_sessionManager.SendDetails();
+          }
+        }
+
+        if ( message is EntryListResponse entryListResponse ) {
+          _sessionManager.VerifyCarList( entryListResponse.CarIndices.Select( Convert.ToInt32 ) );
         }
       };
 
-      connection.ConnectionLost += ( sender, args ) => {
-        if ( _sessionInProgress ) {
-          Logger.Log( $"{_currentSessionType} abandoned" );
-          //DEBUG!
-          Logger.Log( $"Sending to server: \r\nWeekend: {_weekendId}\r\nSession: {_sessionId}" );
+      _connection.ConnectionLost += ( sender, args ) => {
+        _sessionManager.AbandonSession();
+        Logger.Log( "Session abandoned" );
+      };
+
+      var entryListUpdateTimer = new System.Timers.Timer( 2000 );
+      entryListUpdateTimer.Elapsed += ( args, sender ) => {
+        if ( _connection.Connected ) {
+          // This is the ping message
+          _connection.Send( new EntryListRequest( true ) );
         }
       };
 
-      connection.ConnectionEstablished += ( sender, args ) => {
-        _weekendId = Guid.NewGuid();
-        _sessionId = Guid.NewGuid();
-      };
+      entryListUpdateTimer.Start();
 
       while ( true ) {
         var key = Console.ReadKey().Key;
@@ -129,22 +94,25 @@ namespace Service {
           break;
         }
 
-        if ( key == ConsoleKey.Delete || key == ConsoleKey.C ) {
+        if ( key == ConsoleKey.Delete ) {
           Console.Clear();
         }
 
+        if ( key == ConsoleKey.C ) {
+          foreach ( var carDetails in _sessionManager.GetAllCars().OrderBy( c => c.Disconnected ).ThenBy( c => c.Position ) ) {
+            var position = carDetails.Disconnected ? "DIS" : carDetails.Position.Value.ToString();
+            Logger.Log( $"{position}. [{carDetails.Location.GetDescription()}] {carDetails.CarModel.GetDescription()} {carDetails.CurrentDriver} {carDetails.LapCount} Laps {carDetails.Delta}" );
+          }
+        }
+
         if ( key == ConsoleKey.T ) {
-          connection.Send( new TrackDataRequest() );
+          _connection.Send( new TrackDataRequest() );
         }
 
         if ( key == ConsoleKey.E ) {
-          connection.Send( new EntryListRequest() );
+          _connection.Send( new EntryListRequest() );
         }
-
-        if ( key == ConsoleKey.D ) {
-          Logger.Log( $"{_track} {_cars[_playerCarIndex].DriverName}: {string.Join( ", ", _cars.Select( c => $"{c.Key} {c.Value.DriverName}"))}" );
-        }
-
+        
         if ( key == ConsoleKey.V ) {
           Logger.CurrentLevel = Logger.CurrentLevel == DefaultLogLevel
             ? LogLevel.Verbose
@@ -152,17 +120,7 @@ namespace Service {
         }
       }
 
-      connection.Stop();
-    }
-  }
-
-  internal class CarDetails {
-    public CarModel CarModel { get; }
-    public string DriverName { get; }
-
-    public CarDetails( CarModel carModel, string driverName ) {
-      CarModel = carModel;
-      DriverName = driverName;
+      _connection.Stop();
     }
   }
 }

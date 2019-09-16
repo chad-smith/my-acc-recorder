@@ -6,8 +6,7 @@ namespace Service.Responses {
       ConnectionId = responseReader.ReadInt32();
       ConnectionSuccess = responseReader.ReadByte() > 0;
       IsReadonly = responseReader.ReadByte() == 0;
-      //TODO: Check
-      ErrorMessage = responseReader.ReadString();
+      ErrorMessage = responseReader.ReadAccString();
     }
 
     public int ConnectionId { get; set; }

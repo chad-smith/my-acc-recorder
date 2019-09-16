@@ -1,4 +1,4 @@
-﻿namespace Service.Responses {
+﻿namespace Service {
   internal enum CupCategory : byte {
     Pro = 0,
     ProAm = 1,
