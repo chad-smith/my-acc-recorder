@@ -1,6 +1,7 @@
-﻿using Service.Responses;
+﻿using MyAcc.Recorder.Enums;
+using MyAcc.Recorder.Responses;
 
-namespace Service {
+namespace MyAcc.Recorder {
   internal class CarDetails {
     public int Id { get; private set; }
     public CarModel CarModel { get; private set; }

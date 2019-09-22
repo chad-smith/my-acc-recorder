@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using Service.Requests;
 
-namespace Service.Fields {
+namespace MyAcc.Recorder.Fields {
   internal class StringField: IApiField {
     private readonly string _value;
 

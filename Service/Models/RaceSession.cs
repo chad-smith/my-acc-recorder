@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Service.Responses;
+using MyAcc.Recorder.Enums;
+using MyAcc.Recorder.Responses;
 
-namespace Service.Models {
+namespace MyAcc.Recorder.Models {
   internal class RaceSession {
     public RaceSession( SessionType type, Guid? weekendId = null ) {
       Id = Guid.NewGuid();

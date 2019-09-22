@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using Service.Fields;
+using MyAcc.Recorder.Fields;
 
-namespace Service.Requests {
-  internal abstract class AccApiRequest {
+namespace MyAcc.Recorder.Requests {
+  public abstract class AccApiRequest {
     public abstract IEnumerable<IApiField> GetFields();
   }
 }

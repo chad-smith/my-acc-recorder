@@ -1,6 +1,7 @@
 ﻿using System.IO;
+using MyAcc.Recorder.Enums;
 
-namespace Service.Responses {
+namespace MyAcc.Recorder.Responses {
   internal class BroadcastingEventResponse: AccApiResponse {
     public BroadcastingEventResponse( BinaryReader reader ) {
       MessageType = (BroadcastingEventType)reader.ReadByte();

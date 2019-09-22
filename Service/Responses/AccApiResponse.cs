@@ -1,7 +1,7 @@
 ﻿using System.IO;
 
-namespace Service.Responses {
-  internal abstract class AccApiResponse {
+namespace MyAcc.Recorder.Responses {
+  public abstract class AccApiResponse {
     public static AccApiResponse Parse( byte[] responseBuffer ) {
       using ( var stream = new MemoryStream( responseBuffer ) ) {
         using ( var reader = new BinaryReader( stream ) ) {

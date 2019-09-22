@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using Service.Fields;
+using MyAcc.Recorder.Fields;
 
-namespace Service.Requests {
+namespace MyAcc.Recorder.Requests {
   internal class TrackDataRequest: AccApiRequestWithConnectionId {
     public bool IsPing { get; }
 

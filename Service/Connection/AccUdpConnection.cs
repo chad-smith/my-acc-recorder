@@ -3,14 +3,13 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Service.Requests;
-using Service.Responses;
-
+using MyAcc.Recorder.Requests;
+using MyAcc.Recorder.Responses;
 using Timer = System.Timers.Timer;
 
-namespace Service {
-  internal class AccDataConnection {
-    private readonly TimeSpan _defaultUpdateInterval = TimeSpan.FromSeconds( 5 );
+namespace MyAcc.Recorder.Connection { 
+  public class AccUdpConnection : IAccUdpConnection {
+    private readonly TimeSpan _defaultUpdateInterval = TimeSpan.FromMilliseconds( 500 );
     private readonly string _host;
     private readonly int _port;
     private readonly string _password;
@@ -21,8 +20,9 @@ namespace Service {
     private readonly Timer _noMessagesReceivedTimer;
     private bool _registered;
     private bool _sendingPing;
+    private bool _retrying;
 
-    public AccDataConnection( string host, int port, string password, TimeSpan? updateInterval ) {
+    public AccUdpConnection( string host = "localhost", int port = 9000, string password = "asd", TimeSpan? updateInterval = null ) {
       _host = host;
       _port = port;
       _password = password;
@@ -41,6 +41,7 @@ namespace Service {
 
         if ( _registered ) {
           ConnectionLost?.Invoke( null, new ConnectionLostEventArgs() );
+          Reconnect();
         }
 
         _registered = false;
@@ -93,7 +94,7 @@ namespace Service {
         if ( accMessage is RegistrationResponse registration ) {
           ConnectionId = registration.ConnectionId;
           ConnectionEstablished?.Invoke( this, null );
-
+          SetConnected();
           _registered = true;
         }
 
@@ -152,6 +153,27 @@ namespace Service {
 
     private void SendPing() {
       Send( new TrackDataRequest( true ) );
+    }
+
+    private void Reconnect() {
+      if ( !_retrying ) {
+        Logger.Log( "Lost connection. Reconnecting..." );
+      }
+      else {
+        _retrying = true;
+        Logger.Log( "Connection attempt failed, retrying...", Severity.Verbose );
+      }
+    }
+
+    private void SetConnected() {
+      if ( !_retrying ) {
+        Logger.Log( "Connected" );
+      }
+      else {
+        Logger.Log( "Connected", Severity.Verbose );
+      }
+
+      _retrying = false;
     }
   }
 }

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Service {
+namespace MyAcc.Recorder.Enums {
   internal enum CarModel: byte {
     [Description("Porsche 991 GT3 R")]
     Porsche991,

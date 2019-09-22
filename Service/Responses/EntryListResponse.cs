@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace Service.Responses {
+namespace MyAcc.Recorder.Responses {
   internal class EntryListResponse: AccApiResponse {
     public EntryListResponse( BinaryReader reader ) {
       ConnectionId = reader.ReadInt32();

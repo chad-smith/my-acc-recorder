@@ -1,7 +1,6 @@
 ﻿using System.IO;
-using Service.Requests;
 
-namespace Service.Fields {
+namespace MyAcc.Recorder.Fields {
   internal class IntField: IApiField {
     private readonly int _value;
 

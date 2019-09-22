@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Service.Fields;
+﻿using System.Collections.Generic;
+using MyAcc.Recorder.Fields;
 
-namespace Service.Requests {
+namespace MyAcc.Recorder.Requests {
   internal class EntryListRequest: AccApiRequestWithConnectionId {
     public override IEnumerable<IApiField> GetFields() {
       return new IApiField[] {

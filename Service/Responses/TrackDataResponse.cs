@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace Service.Responses {
-  internal class TrackDataResponse: AccApiResponse {
+namespace MyAcc.Recorder.Responses {
+  public class TrackDataResponse: AccApiResponse {
     public TrackDataResponse( BinaryReader reader ) {
       ConnectionId = reader.ReadInt32();
       TrackName = reader.ReadAccString();
@@ -29,6 +29,15 @@ namespace Service.Responses {
       }
 
       HudPages = hudPages;
+    }
+
+    public TrackDataResponse( int connectionId, List<string> hudPages, Dictionary<string, List<string>> cameraSets, int trackMeters, int trackId, string trackName ) {
+      ConnectionId = connectionId;
+      HudPages = hudPages;
+      CameraSets = cameraSets;
+      TrackMeters = trackMeters;
+      TrackId = trackId;
+      TrackName = trackName;
     }
 
     public int ConnectionId { get; }

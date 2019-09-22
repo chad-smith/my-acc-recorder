@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 
-namespace Service {
+namespace MyAcc.Recorder.Enums {
   internal static class EnumExtensions {
     public static string GetDescription( this Enum e ) {
       var genericEnumType = e.GetType();

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Service.Fields;
+using MyAcc.Recorder.Fields;
 
-namespace Service.Requests {
+namespace MyAcc.Recorder.Requests {
   internal class RegistrationRequest : AccApiRequest {
     private readonly string _password;
     public TimeSpan? UpdateInterval { get; }

@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Service.Responses {
+namespace MyAcc.Recorder.Responses {
   internal class RegistrationResponse: AccApiResponse {
     public RegistrationResponse( BinaryReader responseReader ) {
       ConnectionId = responseReader.ReadInt32();

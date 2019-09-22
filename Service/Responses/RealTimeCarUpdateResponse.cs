@@ -1,7 +1,8 @@
 ﻿using System;
 using System.IO;
+using MyAcc.Recorder.Enums;
 
-namespace Service.Responses {
+namespace MyAcc.Recorder.Responses {
   internal class RealTimeCarUpdateResponse: AccApiResponse {
     public RealTimeCarUpdateResponse( BinaryReader reader ) {
       CarIndex = reader.ReadUInt16();

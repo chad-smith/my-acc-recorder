@@ -1,4 +1,4 @@
-﻿namespace Service {
+﻿namespace MyAcc.Recorder.Enums {
   internal enum BroadcastingEventType {
     None = 0,
     GreenFlag = 1,

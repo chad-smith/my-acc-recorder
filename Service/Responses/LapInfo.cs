@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
+using MyAcc.Recorder.Enums;
 
-namespace Service.Responses {
+namespace MyAcc.Recorder.Responses {
   public class LapInfo {
     public int? LapTimeMilliseconds { get; internal set; }
     public List<int?> Splits { get; } = new List<int?>();

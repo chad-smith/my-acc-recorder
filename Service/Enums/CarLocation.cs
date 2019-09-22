@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Service
+namespace MyAcc.Recorder.Enums
 {
   public enum CarLocation {
     None = 0,

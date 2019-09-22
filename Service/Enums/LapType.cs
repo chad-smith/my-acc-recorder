@@ -1,4 +1,4 @@
-﻿namespace Service {
+﻿namespace MyAcc.Recorder.Enums {
   public enum LapType {
     Error = 0,
     Outlap = 1,

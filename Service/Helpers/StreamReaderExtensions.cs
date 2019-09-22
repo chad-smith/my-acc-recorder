@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace Service {
+namespace MyAcc.Recorder {
   public static class StreamReaderExtensions {
     public static string ReadAccString( this BinaryReader reader ) {
       var length = reader.ReadUInt16();

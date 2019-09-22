@@ -4,10 +4,12 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Timers;
+using MyAcc.Recorder.Enums;
+using MyAcc.Recorder.Models;
+using MyAcc.Recorder.Responses;
 using Newtonsoft.Json;
-using Service.Responses;
 
-namespace Service.Models {
+namespace MyAcc.Recorder {
   internal class SessionManager {
     private RaceSession _session;
     private readonly List<int> _carsPendingUpdate = new List<int>();

@@ -1,7 +1,6 @@
 ﻿using System.IO;
-using Service.Requests;
 
-namespace Service.Fields {
+namespace MyAcc.Recorder.Fields {
   internal class ByteField: IApiField {
     private readonly byte _value;
     public ByteField( byte value ) {

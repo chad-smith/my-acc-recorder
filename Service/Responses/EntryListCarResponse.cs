@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using MyAcc.Recorder.Enums;
 
-namespace Service.Responses {
+namespace MyAcc.Recorder.Responses {
   internal class EntryListCarResponse: AccApiResponse {
     public EntryListCarResponse( BinaryReader reader ) {
       Drivers = new List<DriverInfo>();

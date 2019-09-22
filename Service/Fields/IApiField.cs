@@ -1,7 +1,7 @@
 ﻿using System.IO;
 
-namespace Service.Fields {
-  internal interface IApiField {
+namespace MyAcc.Recorder.Fields {
+  public interface IApiField {
     void WriteValue( BinaryWriter writer );
   }
 }

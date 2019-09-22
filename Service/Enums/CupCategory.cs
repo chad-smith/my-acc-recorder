@@ -1,4 +1,4 @@
-﻿namespace Service {
+﻿namespace MyAcc.Recorder.Enums {
   internal enum CupCategory : byte {
     Pro = 0,
     ProAm = 1,

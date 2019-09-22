@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using MyAcc.Recorder.Enums;
 
-namespace Service.Responses {
+namespace MyAcc.Recorder.Responses {
   internal class RealTimeUpdateResponse: AccApiResponse {
     public RealTimeUpdateResponse( BinaryReader reader ) {
       EventIndex = reader.ReadUInt16();

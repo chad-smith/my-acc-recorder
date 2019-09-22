@@ -1,4 +1,6 @@
-﻿namespace Service.Responses {
+﻿using MyAcc.Recorder.Enums;
+
+namespace MyAcc.Recorder.Responses {
   internal class DriverInfo {
     public DriverInfo( string firstName, string lastName, string shortName, DriverCategory category ) {
       FirstName = firstName;
