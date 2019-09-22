@@ -3,16 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Timers;
 using Newtonsoft.Json;
 using Service.Responses;
 
 namespace Service.Models {
   internal class SessionManager {
     private RaceSession _session;
+    private readonly List<int> _carsPendingUpdate = new List<int>();
     public event EventHandler SessionStarted;
     public event EventHandler SessionEnded;
     public event EventHandler TimedPhaseStarted;
     public event EventHandler TimedPhaseEnded;
+
+    public SessionManager() {
+      var updateServerTimer = new Timer( 5000 ) {
+        AutoReset = true
+      };
+
+      updateServerTimer.Elapsed += ( sender, args ) => {
+        if ( _session != null ) {
+          SendCarUpdates();
+        }
+      };
+      updateServerTimer.Start();
+    }
 
     public void UpdateSessionBasics( SessionType type, SessionPhase phase ) {
       if ( phase == SessionPhase.None ) {
@@ -78,7 +93,7 @@ namespace Service.Models {
       TimedPhaseEnded?.Invoke( this, EventArgs.Empty );
     }
 
-    private void SendSessionUpdate() {
+    private void SendSessionUpdates() {
       var content = new {
         Phase = _session.Phase.ToString(),
         _session.RemainingTime,
@@ -86,24 +101,36 @@ namespace Service.Models {
         CarCount = _session.Cars.Count
       };
 
-      Send( $"session/{_session.Id}", content, HttpMethod.Put );
+      Send( $"session/{_session.Id}/update", content );
     }
 
-    private void SendCarUpdate( int id ) {
-      var car = _session.Cars[id];
-      Send(
-        $"session/{_session.Id}/car/{id}",
-        new {
-          car.CurrentDriver,
-          car.LapCount,
-          car.Disconnected,
-          CarModel = car.CarModel.GetDescription(),
-          car.Delta,
-          Location = car.Location.GetDescription(),
-          car.Position
-        },
-        HttpMethod.Put
-      );
+    private void SendCarUpdates() {
+      //lock ( _carsPendingUpdate ) {
+        if ( !_carsPendingUpdate.Any() ) {
+          return;
+        }
+
+        var cars = _session.Cars.Values
+          .Where( c => _carsPendingUpdate.Contains( c.Id ) )
+          .ToList();
+
+        Send(
+          $"session/{_session.Id}/cars/update",
+          cars.Select( car => new {
+              car.Id,
+              car.CurrentDriver,
+              car.LapCount,
+              car.Disconnected,
+              CarModel = car.CarModel.GetDescription(),
+              car.Delta,
+              Location = car.Location.GetDescription(),
+              car.Position
+            }
+          ).ToList()
+        );
+
+        _carsPendingUpdate.Clear();
+      //}
     }
 
     private void Send( string endpoint, object content, HttpMethod method = null ) {
@@ -125,8 +152,8 @@ namespace Service.Models {
       );
       var message = new HttpRequestMessage(
         method ?? HttpMethod.Post,
-        $"https://my-acc.net/api/{endpoint}"
-        //$"http://localhost:5000/api/{endpoint}"
+        //$"https://my-acc.net/api/{endpoint}"
+        $"http://localhost:5000/api/{endpoint}"
       );
       message.Content = stringContent;
 
@@ -157,8 +184,8 @@ namespace Service.Models {
     private void SendInitialDetails() {
       var content = new {
         _session.Id,
-        Type = _session.Type.ToString(),
-        Phase = _session.Phase.ToString(),
+        Type = _session.Type.GetDescription(),
+        Phase = _session.Phase.GetDescription(),
         _session.RemainingTime,
         _session.ElapsedTime,
         CarCount = _session.Cars.Count,
@@ -176,10 +203,14 @@ namespace Service.Models {
       _session.SetCar( carId, carModel, name );
     }
 
-    public void VerifyCarList( IEnumerable<int> carIdList ) {
+    public void VerifyCarList( int[] carIdList ) {
       foreach ( var carKey in _session.Cars.Keys ) {
         if ( !carIdList.Contains( carKey ) ) {
-          _session.DisconnectCar( carKey );
+          if ( !_session.Cars[carKey].Disconnected ) {
+            _session.DisconnectCar( carKey );
+            _carsPendingUpdate.Add( carKey );
+            SendCarUpdates();
+          }
         }
       }
     }
@@ -203,14 +234,14 @@ namespace Service.Models {
         delta
       );
 
-      SendCarUpdate( id );
+      _carsPendingUpdate.Add( id );
     }
 
     public void UpdateSessionDetails( RealTimeUpdateResponse realtimeUpdate ) {
       _session.ElapsedTime = realtimeUpdate.SessionTime;
       _session.RemainingTime = realtimeUpdate.SessionEndTime;
 
-      SendSessionUpdate();
+      SendSessionUpdates();
     }
   }
 }

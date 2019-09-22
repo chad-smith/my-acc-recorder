@@ -98,7 +98,7 @@ namespace Service {
         }
 
         // Trim out realtime responses as this generates too much noise
-        if ( !( accMessage is RealTimeUpdateResponse || accMessage is RealTimeCarUpdateResponse || accMessage is EntryListCarResponse || accMessage is EntryListResponse ) ) {
+        if ( !( accMessage is RealTimeUpdateResponse || accMessage is RealTimeCarUpdateResponse ) ) {
           Logger.Log( $"Received {accMessage}", Severity.Verbose );
         }
         
@@ -121,7 +121,7 @@ namespace Service {
           .TotalMilliseconds
           + 250;
       }
-      else if ( !(request is EntryListRequest el && el.IsPing ) ) {
+      else if ( !(request is TrackDataRequest td && td.IsPing ) ) {
         Logger.Log( $"Sending {request.GetType().Name}", Severity.Verbose );
       }
 
@@ -151,7 +151,7 @@ namespace Service {
     }
 
     private void SendPing() {
-      Send( new TrackDataRequest() );
+      Send( new TrackDataRequest( true ) );
     }
   }
 }

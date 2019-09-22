@@ -69,7 +69,7 @@ namespace Service {
         }
 
         if ( message is EntryListResponse entryListResponse ) {
-          _sessionManager.VerifyCarList( entryListResponse.CarIndices.Select( Convert.ToInt32 ) );
+          _sessionManager.VerifyCarList( entryListResponse.CarIndices.Select( Convert.ToInt32 ).ToArray() );
         }
       };
 
@@ -78,11 +78,11 @@ namespace Service {
         Logger.Log( "Session abandoned" );
       };
 
-      var entryListUpdateTimer = new System.Timers.Timer( 2000 );
+      // Entry list is polled to check for disconnections
+      var entryListUpdateTimer = new System.Timers.Timer( 5000 );
       entryListUpdateTimer.Elapsed += ( args, sender ) => {
         if ( _connection.Connected ) {
-          // This is the ping message
-          _connection.Send( new EntryListRequest( true ) );
+          _connection.Send( new EntryListRequest() );
         }
       };
 

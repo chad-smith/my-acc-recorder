@@ -22,7 +22,8 @@ namespace Service {
     BentleyContinental,
     [Description( "Porsche 991 II GT3 Cup" )]
     Porsche991IICup,
-    K,
+    [Description( "Nissan GT-R Nismo GT3" )]
+    NissanGtrAlt,
     L,
     [Description("AMR V12 Vantage GT3")] 
     AmrVantageV12,
@@ -32,7 +33,8 @@ namespace Service {
     [Description("Lexus RC F GT3")]
     LexusRCF,
     Q,
-    R,
+    [Description("Honda NSX GT3")]
+    HondaNsx,
     [Description("Lamborghini Huracan ST")]
     LamborghiniHuracanST
   }

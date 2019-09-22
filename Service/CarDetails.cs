@@ -21,7 +21,6 @@ namespace Service {
     }
 
     public void Disconnect() {
-      Position = null;
       Disconnected = true;
     }
 

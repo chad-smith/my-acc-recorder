@@ -1,4 +1,6 @@
-﻿namespace Service {
+﻿using System.ComponentModel;
+
+namespace Service {
   public enum SessionType {
     Practice = 0,
     Qualifying = 4,
@@ -6,6 +8,7 @@
     Race = 10,
     Hotlap = 11,
     Hotstint = 12,
+    [Description("Hotlap Superpole")]
     HotlapSuperpole = 13,
     Replay = 14
   };
