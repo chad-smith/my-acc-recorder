@@ -1,6 +1,7 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Windows;
+using MyAcc.Recorder.Enums;
+using MyAcc.Recorder.Responses;
 
 namespace MyAcc.Recorder.Tester {
   /// <summary>
@@ -8,25 +9,36 @@ namespace MyAcc.Recorder.Tester {
   /// </summary>
   public partial class MainWindow: Window {
     private readonly AccManager _manager;
-    private readonly FakeAccUdpConnection _connection;
+    private readonly FakeAccConnection _connection;
 
     public MainWindow() {
-      InitializeComponent();
-
-      this.Closing += WindowClosing;
-      ;
-
-      _connection = new FakeAccUdpConnection();
+      _connection = new FakeAccConnection();
       _manager = new AccManager( _connection );
-      _manager.Start();
+      
+      InitializeComponent();
+      Closed += ( sender, args ) => _manager.Stop();
     }
 
-    private void WindowClosing( object sender, CancelEventArgs e ) {
-      _manager.Stop();
+    private void TestButton_Click( object sender, RoutedEventArgs e ) {
+      _connection.InvokeFakeResponse( new RegistrationResponse( 10, true ) );
+
+      _connection.InvokeFakeResponse(
+        new RealTimeUpdateResponse(
+          SessionPhase.PreSession,
+          TimeSpan.FromMinutes( 0 ),
+          false,
+          TimeSpan.FromMinutes( 20 ),
+          SessionType.Qualifying,
+          28,
+          36
+        )
+      );
+
+      _connection.InvokeFakeResponse( new TrackDataResponse( "Brands Hatch" ) );
     }
 
-    private void TestButton_OnClick( object sender, RoutedEventArgs e ) {
-      _connection.SendTest();
+    private async void Window_Loaded( object sender, RoutedEventArgs e ) {
+      await _manager.Start();
     }
   }
 }

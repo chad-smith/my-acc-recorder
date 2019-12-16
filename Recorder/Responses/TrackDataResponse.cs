@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using MyAcc.Recorder.Helpers;
 
 namespace MyAcc.Recorder.Responses {
   public class TrackDataResponse: AccApiResponse {
@@ -31,12 +32,7 @@ namespace MyAcc.Recorder.Responses {
       HudPages = hudPages;
     }
 
-    public TrackDataResponse( int connectionId, List<string> hudPages, Dictionary<string, List<string>> cameraSets, int trackMeters, int trackId, string trackName ) {
-      ConnectionId = connectionId;
-      HudPages = hudPages;
-      CameraSets = cameraSets;
-      TrackMeters = trackMeters;
-      TrackId = trackId;
+    public TrackDataResponse( string trackName ) {
       TrackName = trackName;
     }
 

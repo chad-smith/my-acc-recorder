@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using MyAcc.Recorder.Enums;
+using MyAcc.Recorder.Helpers;
 
 namespace MyAcc.Recorder.Responses {
   internal class EntryListCarResponse: AccApiResponse {

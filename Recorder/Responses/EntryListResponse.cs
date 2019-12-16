@@ -2,7 +2,7 @@
 using System.IO;
 
 namespace MyAcc.Recorder.Responses {
-  internal class EntryListResponse: AccApiResponse {
+  public class EntryListResponse: AccApiResponse {
     public EntryListResponse( BinaryReader reader ) {
       ConnectionId = reader.ReadInt32();
       CarCount = reader.ReadUInt16();
@@ -10,6 +10,12 @@ namespace MyAcc.Recorder.Responses {
       for ( var i = 0; i < CarCount; i++ ) {
         CarIndices.Add( reader.ReadUInt16() );
       }
+    }
+
+    public EntryListResponse( int connectionId, ushort carCount, List<ushort> carIndices ) {
+      ConnectionId = connectionId;
+      CarCount = carCount;
+      CarIndices = carIndices;
     }
 
     public int ConnectionId { get; }

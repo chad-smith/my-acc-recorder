@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using MyAcc.Recorder.Enums;
+using MyAcc.Recorder.Helpers;
 
 namespace MyAcc.Recorder.Responses {
   internal class BroadcastingEventResponse: AccApiResponse {

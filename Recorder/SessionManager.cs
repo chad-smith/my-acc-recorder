@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Timers;
 using MyAcc.Recorder.Enums;
 using MyAcc.Recorder.Models;
 using MyAcc.Recorder.Responses;
-using Newtonsoft.Json;
 
 namespace MyAcc.Recorder {
   internal class SessionManager {
@@ -145,7 +145,7 @@ namespace MyAcc.Recorder {
 
       var httpClient = new HttpClient();
 
-      var serializedContent = JsonConvert.SerializeObject( content );
+      var serializedContent = JsonSerializer.Serialize( content );
 
       var stringContent = new StringContent(
         serializedContent,

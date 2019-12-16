@@ -11,7 +11,7 @@ namespace MyAcc.Recorder {
       var udpConnection = new AccUdpConnection( "office-pc" );
 
       var manager = new AccManager( udpConnection );
-      
+
       while ( true ) {
         var key = Console.ReadKey().Key;
         if ( key == ConsoleKey.Q ) {

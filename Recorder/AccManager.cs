@@ -1,47 +1,49 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using MyAcc.Recorder.Connection;
 using MyAcc.Recorder.Enums;
-using MyAcc.Recorder.Requests;
 using MyAcc.Recorder.Responses;
 
 namespace MyAcc.Recorder {
   public class AccManager {
     private static SessionManager _sessionManager;
-    private readonly IAccUdpConnection _udpConnection;
+    private readonly AccClient _accClient;
 
-    public AccManager( IAccUdpConnection udpConnection ) {
-      _udpConnection = udpConnection;
+    public AccManager( IAccConnection connection ) {
+      _accClient = new AccClient( connection );
 
-      _udpConnection.MessageReceived += AccMessageReceived;
-      _udpConnection.ConnectionLost += ( sender, args ) => {
+      //_connection.MessageReceived += AccMessageReceived;
+      /*_connection.ConnectionLost += ( sender, args ) => {
         _sessionManager.AbandonSession();
         Logger.Log( "Session abandoned" );
       };
+*/
 
       _sessionManager = new SessionManager();
 
-      _sessionManager.SessionStarted += ( sender, args ) => {
-        _udpConnection.Send( new TrackDataRequest() );
+      _sessionManager.SessionStarted += async ( sender, args ) => {
+        var trackData = await _accClient.GetTrackData();
+        _sessionManager.SetTrack( trackData.TrackName );
       };
     }
 
-    public void Start() {
-      _udpConnection.Start();
+    public async Task Start() {
+      await _accClient.Connect();
 
       // Entry list is polled to check for car disconnections
       var entryListUpdateTimer = new System.Timers.Timer( 5000 );
-      entryListUpdateTimer.Elapsed += ( args, sender ) => {
-        if ( _udpConnection.Connected ) {
-          _udpConnection.Send( new EntryListRequest() );
-        }
+      entryListUpdateTimer.Elapsed += async ( args, sender ) => {
+        var entryList = await _accClient.GetEntryList();
+
+        _sessionManager.VerifyCarList( entryList.CarIndices.Select( Convert.ToInt32 ).ToArray() );
       };
 
       entryListUpdateTimer.Start();
     }
 
     public void Stop() {
-      _udpConnection.Stop();
+      _accClient.Disconnect();
     }
 
     private void AccMessageReceived( object sender, AccApiResponse message ) {
@@ -52,15 +54,8 @@ namespace MyAcc.Recorder {
       if ( message is RealTimeCarUpdateResponse realtimeCarUpdate ) {
         RealtimeCarUpdateReceived( realtimeCarUpdate );
       }
-
-      if ( message is TrackDataResponse trackResponse ) {
-        TrackResponseReceived( trackResponse );
-      }
-
-      if ( message is EntryListResponse entryListResponse ) {
-        EntryListReceived( entryListResponse );
-      }
-
+      
+      //TODO: bundle with entry list?
       if ( message is EntryListCarResponse carResponse ) {
         EntryListCarResponseReceived( carResponse );
       }
@@ -69,13 +64,7 @@ namespace MyAcc.Recorder {
         BroadcastingEventReceived( broadcastingEvent );
       }
     }
-
-    private void TrackResponseReceived( TrackDataResponse trackResponse ) {
-      _sessionManager.SetTrack( trackResponse.TrackName );
-      // Invert this so the SessionManager indicates it is ready for the entry list
-      _udpConnection.Send( new EntryListRequest() );
-    }
-
+    
     private static void RealTimeUpdateReceived( RealTimeUpdateResponse realtimeUpdate ) {
       _sessionManager.UpdateSessionBasics( realtimeUpdate.SessionType, realtimeUpdate.Phase );
       _sessionManager.UpdateSessionDetails( realtimeUpdate );
@@ -91,10 +80,6 @@ namespace MyAcc.Recorder {
         realtimeCarUpdate.LastLap,
         realtimeCarUpdate.Delta
       );
-    }
-
-    private static void EntryListReceived( EntryListResponse entryListResponse ) {
-      _sessionManager.VerifyCarList( entryListResponse.CarIndices.Select( Convert.ToInt32 ).ToArray() );
     }
 
     private static void EntryListCarResponseReceived( EntryListCarResponse carResponse ) {

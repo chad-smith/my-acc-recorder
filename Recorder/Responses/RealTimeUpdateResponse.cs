@@ -4,7 +4,7 @@ using System.Text;
 using MyAcc.Recorder.Enums;
 
 namespace MyAcc.Recorder.Responses {
-  internal class RealTimeUpdateResponse: AccApiResponse {
+  public class RealTimeUpdateResponse: AccApiResponse {
     public RealTimeUpdateResponse( BinaryReader reader ) {
       EventIndex = reader.ReadUInt16();
       SessionIndex = reader.ReadUInt16();
@@ -34,6 +34,16 @@ namespace MyAcc.Recorder.Responses {
       Wetness = reader.ReadByte() / 10.0f;
 
       BestSessionLap = LapInfo.FromReader( reader );
+    }
+
+    public RealTimeUpdateResponse( SessionPhase phase, TimeSpan sessionTime, bool isReplayPlaying, TimeSpan sessionEndTime, SessionType sessionType, byte ambientTemp, byte trackTemp ) {
+      Phase = phase;
+      SessionTime = sessionTime;
+      IsReplayPlaying = isReplayPlaying;
+      SessionEndTime = sessionEndTime;
+      SessionType = sessionType;
+      AmbientTemp = ambientTemp;
+      TrackTemp = trackTemp;
     }
 
     public int EventIndex { get; }

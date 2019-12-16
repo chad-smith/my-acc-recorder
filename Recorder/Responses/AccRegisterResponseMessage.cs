@@ -1,12 +1,18 @@
 ﻿using System.IO;
+using MyAcc.Recorder.Helpers;
 
 namespace MyAcc.Recorder.Responses {
-  internal class RegistrationResponse: AccApiResponse {
+  public class RegistrationResponse: AccApiResponse {
     public RegistrationResponse( BinaryReader responseReader ) {
       ConnectionId = responseReader.ReadInt32();
       ConnectionSuccess = responseReader.ReadByte() > 0;
       IsReadonly = responseReader.ReadByte() == 0;
       ErrorMessage = responseReader.ReadAccString();
+    }
+
+    public RegistrationResponse( int connectionId, bool connectionSuccess ) {
+      ConnectionId = connectionId;
+      ConnectionSuccess = connectionSuccess;
     }
 
     public int ConnectionId { get; set; }
